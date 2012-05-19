@@ -1,2 +1,2 @@
 # CMP
-CMP is a C++ library and simple application-level protocaul over TCP. It is designed to one-shot communication with all computers on a CMP network with all of the benifits (reliability, ordering, etc.) of TCP. CMP is still under development. Feel free to peruse the code make aditions, I will try to add comments soon.
+CMP is a C++ library and simple application-level protocol over TCP. It is designed to one-shot communication with all computers on a CMP network with all of the benefits (reliability, ordering, etc.) of TCP. CMP is still under development. Feel free to peruse the code make additions, I will try to add comments soon.
