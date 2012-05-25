@@ -1,9 +1,11 @@
+UNAME := $(shell uname)
+
 libcmp.so: CMPSocket.o UNIXError.o
-	g++ -shared -fPIC -o libcmp.so build/CMPSocket.o UNIXError.o
+	g++ -shared -fPIC -o libcmp.so build/CMPSocket.o build/UNIXError.o
 CMPSocket.o: CMPSocket.cpp CMPSocket.h UNIXError.h
-	g++ -c -fPIC -o build/CMPSocket.o CMPSocket.cpp
+	g++ -c -fPIC -D$(UNAME) -o build/CMPSocket.o CMPSocket.cpp
 UNIXError.o: UNIXError.cpp
-	g++ -c -fPIC -o build/UNIXError.o UNIXError.cpp
+	g++ -c -fPIC -D$(UNAME) -o build/UNIXError.o UNIXError.cpp
 fork-parent.o: fork-parent/fork-parent.h
 	gcc -c -o build/fork-parent.o fork-parent/fork-parent.c
 cmpnameserver.o: cmpnameserver.cpp cmpnameserver-bits/cmpnameserver-common-bits.h cmpnameserver-bits/cmpnameserver-nserver.h fork-parent/fork-parent.h

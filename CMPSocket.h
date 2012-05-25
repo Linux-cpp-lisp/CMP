@@ -7,20 +7,25 @@
 
 #ifndef CMPSOCKET_H
 #define CMPSOCKET_H
-//Internet Includes:
+//-----Internet Includes:
 #include <arpa/inet.h>
 #include <netinet/in.h>
 #include <netdb.h>
 #include <sys/socket.h>
-//System includes:
+//-----System includes (generic):
 #include <sys/types.h>
 #include <unistd.h>
 #include <pthread.h>
-//Standard Includes:
+#include <sys/types.h>
+//--Darwin specific includes:
+#ifdef Darwin
+#include <sys/uio.h>
+#endif
+//-----Standard Includes:
 #include <iostream>
-//Boost Includes:
+//-----Boost Includes:
 #include <boost/smart_ptr.hpp>
-//Local includes:
+//-----Local includes:
 #include "UNIXError.h"
 
 #define CMPAddressCore 0
