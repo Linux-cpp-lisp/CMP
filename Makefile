@@ -1,5 +1,5 @@
 libcmp.so: CMPSocket.o UNIXError.o
-	g++ -shared -fPIC -o libcmp.so build/CMPSocket.o UNIXError.o
+	g++ -shared -fPIC -o libcmp.so build/CMPSocket.o build/UNIXError.o
 CMPSocket.o: CMPSocket.cpp CMPSocket.h UNIXError.h
 	g++ -c -fPIC -o build/CMPSocket.o CMPSocket.cpp
 UNIXError.o: UNIXError.cpp

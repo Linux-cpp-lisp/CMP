@@ -1,6 +1,7 @@
 #ifndef CMPNSERVER_H
 #define CMPNSERVER_H
 //System Includes
+#include <sys/select.h>
 #include <arpa/inet.h>
 #include <netinet/in.h>
 #include <sys/socket.h>
@@ -9,12 +10,16 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <signal.h>
+#include <sysexits.h>
 #include <syslog.h>
 //Standard Includes
 #include <cstring>
+#include <map>
 //Local Includes
 #include "../CMPSocket.h"
 #include "cmpnameserver-common-bits.h"
+
+static int server;
 
 void runNserverDetached(int);
 
@@ -31,13 +36,12 @@ void sigHandler(int sig)
 void sigtermHandler(int)
 {
   syslog(LOG_INFO, "SIGTERM caught, terminating...");
-  
+  close(server);
 }
 
 void runNserver(CMPNserverOpts opts)
 {
   cerr<<"INFO: Server started as PID "<<getpid()<<"."<<endl;
-  int server;
   try
   {
     int yes=1;
@@ -79,7 +83,7 @@ void runNserver(CMPNserverOpts opts)
     openlog("cmpd", LOG_PID, LOG_DAEMON);
     cerr<<"Server setup complete, detaching..."<<endl;
     close(STDERR_FILENO);
-    runNserverDetached(server);
+    runNserverDetached();
   }
   catch(UNIXError e)
   {
@@ -88,25 +92,48 @@ void runNserver(CMPNserverOpts opts)
   }
 }
 
-void runNserverDetached(int server)
+void runNserverDetached()
 {
   try
   {
-  socklen_t sin_size;
-  sockaddr_storage them;
-  int client;
-  char addr[INET6_ADDRSTRLEN];
-  while(true)
-  {
-    sin_size=sizeof(them);
-    ERR(accept(server, (sockaddr*)&them, &sin_size), client);
-    inet_ntop(them.ss_family, get_in_addr((sockaddr*)&them), addr, sizeof(addr));
-    syslog(LOG_INFO, "Got new connection from %s.", addr);
-  }
+    socklen_t sin_size=sizeof(sockaddr_storage);
+    sockaddr_storage them;
+    int client;
+    int rv;
+    int fd_max=server;
+    char addr[INET6_ADDRSTRLEN];
+    fd_set master, temp;
+    FD_ZERO(master);
+    FD_ZERO(temp);
+    FD_SET(server, master);
+    while(true)
+    {
+	temp=master;
+	sin_size=sizeof(sockaddr_storage);
+	ERR(select(fd_max, temp, NULL, NULL, NULL), rv);
+	if(FD_ISSET(server, master))
+	{
+	  //Got new connection
+	  ERR(accept(server, (sockaddr*)them, &sin_size), client);
+	  if(client > fd_max-1)
+	    fd_max=client+1;
+	  FD_SET(client, master);
+	}
+	else
+	{
+	  //Input from a client
+	}
+//      sin_size=sizeof(them);
+//      ERR(accept(server, (sockaddr*)&them, &sin_size), client);
+//      inet_ntop(them.ss_family, get_in_addr((sockaddr*)&them), addr, sizeof(addr));
+//      syslog(LOG_INFO, "Got new connection from %s.", addr);
+//      FD_SET(client, master);
+    }
   }
   catch(UNIXError e)
   {
     syslog(LOG_CRIT, "Exception reached outermost catch with error # %i and message \"%s\". Aborting.", e.getErrorNum(), e.what());
+    exit(EX_OSERR);
   }
 }
 
